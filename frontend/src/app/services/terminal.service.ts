@@ -35,6 +35,10 @@ export class TerminalService {
     this.ws.onmessage = (event) => {
       if (event.data instanceof ArrayBuffer) {
         this.messageSubject.next(event.data);
+      } else if (typeof event.data === 'string') {
+        // Convert string message to ArrayBuffer for terminal display
+        const encoder = new TextEncoder();
+        this.messageSubject.next(encoder.encode(event.data).buffer);
       }
     };
 
