@@ -52,10 +52,6 @@ GOOS=windows GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o ../bin/web-terminal-
 
 cd ..
 
-# Clean up
-echo "🧹 Cleaning up..."
-rm -rf backend/static
-
 # Create platform-specific symlinks/copies for convenience
 echo "🔗 Creating platform shortcuts..."
 
@@ -96,3 +92,9 @@ echo "   macOS (Intel):    bin/web-terminal-darwin-amd64"
 echo "   Linux (ARM64):    bin/web-terminal-linux-arm64"
 echo "   Linux (x86_64):   bin/web-terminal-linux-amd64"
 echo "   Windows (x86_64): bin/web-terminal-windows-amd64.exe"
+
+# Clean up (keep static directory for development, but remove in CI)
+if [ "${CI}" = "true" ]; then
+    echo "🧹 Cleaning up static files..."
+    rm -rf backend/static
+fi

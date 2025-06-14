@@ -56,9 +56,15 @@ func main() {
 	r := gin.Default()
 
 	// Serve static files
-	staticFS, err := fs.Sub(staticFiles, "static/frontend")
+	staticFS, err := fs.Sub(staticFiles, "static/frontend/browser")
 	if err != nil {
-		log.Fatal("Failed to create sub filesystem:", err)
+		log.Printf("Failed to create sub filesystem from 'static/frontend/browser': %v", err)
+		// Try fallback path
+		staticFS, err = fs.Sub(staticFiles, "static/frontend")
+		if err != nil {
+			log.Printf("Failed to create sub filesystem from 'static/frontend': %v", err)
+			log.Fatal("Could not locate static files in embed filesystem")
+		}
 	}
 
 	r.Use(func(c *gin.Context) {
@@ -79,7 +85,7 @@ func main() {
 	r.GET("/ws", handleWebSocket)
 
 	// Static file serving with SPA fallback
-	r.Use(func(c *gin.Context) {
+	r.NoRoute(func(c *gin.Context) {
 		path := strings.TrimPrefix(c.Request.URL.Path, "/")
 		if path == "" {
 			path = "index.html"
@@ -100,14 +106,48 @@ func main() {
 
 		// Set appropriate content type
 		if strings.HasSuffix(path, ".html") {
-			c.Header("Content-Type", "text/html")
+			c.Header("Content-Type", "text/html; charset=utf-8")
 		} else if strings.HasSuffix(path, ".js") {
 			c.Header("Content-Type", "application/javascript")
 		} else if strings.HasSuffix(path, ".css") {
 			c.Header("Content-Type", "text/css")
+		} else if strings.HasSuffix(path, ".ico") {
+			c.Header("Content-Type", "image/x-icon")
 		}
 
-		http.ServeContent(c.Writer, c.Request, path, time.Time{}, file.(io.ReadSeeker))
+		if seeker, ok := file.(io.ReadSeeker); ok {
+			http.ServeContent(c.Writer, c.Request, path, time.Time{}, seeker)
+		} else {
+			// Fallback for files that don't implement ReadSeeker
+			data, err := io.ReadAll(file)
+			if err != nil {
+				c.Status(500)
+				return
+			}
+			c.Data(200, c.GetHeader("Content-Type"), data)
+		}
+	})
+
+	// Serve root explicitly
+	r.GET("/", func(c *gin.Context) {
+		file, err := staticFS.Open("index.html")
+		if err != nil {
+			c.Status(404)
+			return
+		}
+		defer file.Close()
+
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		if seeker, ok := file.(io.ReadSeeker); ok {
+			http.ServeContent(c.Writer, c.Request, "index.html", time.Time{}, seeker)
+		} else {
+			data, err := io.ReadAll(file)
+			if err != nil {
+				c.Status(500)
+				return
+			}
+			c.Data(200, "text/html; charset=utf-8", data)
+		}
 	})
 
 	log.Println("Server starting on :8080")

@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Install Node.js dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Get version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Build binaries
+      run: |
+        export VERSION=${{ steps.version.outputs.VERSION }}
+        export CI=true
+        ./build.sh
+    
+    - name: Create checksums
+      run: |
+        cd bin
+        sha256sum web-terminal-* > checksums.txt
+    
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          bin/web-terminal-darwin-arm64
+          bin/web-terminal-darwin-amd64
+          bin/web-terminal-linux-arm64
+          bin/web-terminal-linux-amd64
+          bin/web-terminal-windows-amd64.exe
+          bin/checksums.txt
+        body: |
+          ## Web Terminal ${{ steps.version.outputs.VERSION }}
+          
+          ### Features
+          - Web-based terminal with tmux integration
+          - Cross-platform binaries (macOS, Linux, Windows)
+          - Single binary deployment with embedded frontend
+          - Japanese locale support
+          
+          ### Installation
+          
+          Download the appropriate binary for your platform:
+          
+          **macOS:**
+          - Apple Silicon (M1/M2): `web-terminal-darwin-arm64`
+          - Intel: `web-terminal-darwin-amd64`
+          
+          **Linux:**
+          - ARM64: `web-terminal-linux-arm64`
+          - x86_64: `web-terminal-linux-amd64`
+          
+          **Windows:**
+          - x86_64: `web-terminal-windows-amd64.exe`
+          
+          ### Usage
+          ```bash
+          # Make executable (Unix-like systems)
+          chmod +x web-terminal-*
+          
+          # Run the server
+          ./web-terminal-linux-amd64
+          
+          # Access at http://localhost:8080
+          ```
+          
+          ### Requirements
+          - tmux (install with package manager)
+          
+          ### Checksums
+          Verify your download integrity using the provided `checksums.txt`.
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

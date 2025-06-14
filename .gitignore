@@ -23,6 +23,9 @@ frontend/dist/
 frontend/.angular/
 frontend/.nx/
 
+# Backend embedded static files (generated during build)
+backend/static/
+
 # IDE
 .vscode/
 .idea/

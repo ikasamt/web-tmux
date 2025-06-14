@@ -21,7 +21,28 @@ A modern web-based terminal built with Angular and Go, featuring tmux session ma
 
 ## Quick Start
 
-### Option 1: Build from Source
+### Option 1: Download Pre-built Binary
+
+Download the latest release from [GitHub Releases](https://github.com/ikasamt/web-tmux/releases):
+
+```bash
+# Linux x86_64
+curl -L -o web-terminal https://github.com/ikasamt/web-tmux/releases/latest/download/web-terminal-linux-amd64
+chmod +x web-terminal
+./web-terminal
+
+# macOS Apple Silicon
+curl -L -o web-terminal https://github.com/ikasamt/web-tmux/releases/latest/download/web-terminal-darwin-arm64
+chmod +x web-terminal
+./web-terminal
+
+# macOS Intel
+curl -L -o web-terminal https://github.com/ikasamt/web-tmux/releases/latest/download/web-terminal-darwin-amd64
+chmod +x web-terminal
+./web-terminal
+```
+
+### Option 2: Build from Source
 
 ```bash
 git clone https://github.com/ikasamt/web-tmux.git
@@ -157,6 +178,21 @@ Check version information:
 ```bash
 ./bin/web-terminal --version
 ```
+
+### Release Management
+
+For maintainers, use the release script to create new versions:
+
+```bash
+./release.sh
+```
+
+This script will:
+- Check for clean working directory
+- Generate changelog from git commits
+- Create and push a version tag
+- Trigger automated GitHub Actions build
+- Publish binaries to GitHub Releases
 
 ## Configuration
 
