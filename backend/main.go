@@ -3,6 +3,8 @@ package main
 import (
 	"embed"
 	"encoding/json"
+	"flag"
+	"fmt"
 	"io"
 	"io/fs"
 	"log"
@@ -15,6 +17,13 @@ import (
 	"github.com/creack/pty"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+)
+
+// Build information (set via ldflags)
+var (
+	version   = "dev"
+	buildTime = "unknown"
+	gitCommit = "unknown"
 )
 
 //go:embed static/frontend/*
@@ -32,6 +41,18 @@ type TerminalSize struct {
 }
 
 func main() {
+	var showVersion = flag.Bool("version", false, "Show version information")
+	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("Web Terminal %s\n", version)
+		fmt.Printf("Build Time: %s\n", buildTime)
+		fmt.Printf("Git Commit: %s\n", gitCommit)
+		os.Exit(0)
+	}
+
+	log.Printf("Starting Web Terminal %s (commit: %s, built: %s)", version, gitCommit, buildTime)
+
 	r := gin.Default()
 
 	// Serve static files

@@ -1,5 +1,6 @@
-# Binaries
-web-terminal
+# Binaries (keep the bin directory but ignore its contents except .keep)
+bin/*
+!bin/.keep
 *.exe
 *.dll
 *.so

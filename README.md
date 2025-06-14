@@ -21,23 +21,32 @@ A modern web-based terminal built with Angular and Go, featuring tmux session ma
 
 ## Quick Start
 
-### Option 1: Use Pre-built Binary
-
-```bash
-git clone https://github.com/ikasamt/web-tmux.git
-cd web-tmux
-./web-terminal
-```
-
-Then open http://localhost:8080 in your browser.
-
-### Option 2: Build from Source
+### Option 1: Build from Source
 
 ```bash
 git clone https://github.com/ikasamt/web-tmux.git
 cd web-tmux
 ./build.sh
-./web-terminal
+./bin/web-terminal
+```
+
+The build script creates binaries for all supported platforms:
+- **macOS**: `bin/web-terminal-darwin-arm64` (Apple Silicon), `bin/web-terminal-darwin-amd64` (Intel)
+- **Linux**: `bin/web-terminal-linux-arm64` (ARM64), `bin/web-terminal-linux-amd64` (x86_64)  
+- **Windows**: `bin/web-terminal-windows-amd64.exe`
+
+A platform-specific symlink `bin/web-terminal` is automatically created for convenience.
+
+### Option 2: Cross-platform Binary
+
+After building, you can copy the appropriate binary to your target system:
+
+```bash
+# For Linux x86_64 server
+scp bin/web-terminal-linux-amd64 user@server:/usr/local/bin/web-terminal
+
+# For Raspberry Pi (ARM64)
+scp bin/web-terminal-linux-arm64 user@pi:/home/pi/web-terminal
 ```
 
 ## How It Works
@@ -129,7 +138,25 @@ cd backend && go run main.go
 The `build.sh` script:
 1. Builds Angular for production
 2. Embeds the dist files into Go binary using `embed`
-3. Compiles a single self-contained executable
+3. Cross-compiles binaries for multiple platforms:
+   - macOS (ARM64 & AMD64)
+   - Linux (ARM64 & AMD64)
+   - Windows (AMD64)
+4. Creates platform-specific shortcuts for convenience
+5. Includes build metadata (version, commit, timestamp)
+
+### Build Configuration
+
+Set environment variables to customize the build:
+
+```bash
+VERSION=v1.0.0 ./build.sh  # Set version number
+```
+
+Check version information:
+```bash
+./bin/web-terminal --version
+```
 
 ## Configuration
 
