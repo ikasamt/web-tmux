@@ -19,9 +19,16 @@ export class TerminalService {
   messages$ = this.messageSubject.asObservable();
   connection$ = this.connectionSubject.asObservable();
 
-  connect(url: string = 'ws://localhost:8080/ws'): void {
+  connect(url?: string): void {
     if (this.ws) {
       this.disconnect();
+    }
+
+    // Use relative WebSocket URL to work on any host
+    if (!url) {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host;
+      url = `${protocol}//${host}/ws`;
     }
 
     this.ws = new WebSocket(url);
